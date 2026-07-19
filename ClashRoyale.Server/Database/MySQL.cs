@@ -13,8 +13,6 @@ namespace ClashRoyale.Server.Database
         internal static string Password = "";
         internal static string Database = "cr_server";
 
-        internal static MySqlConnection MySQLConn;
-
         internal static string Credentials => "server=" + Hostname + ";user=" + Username + ";password=" + Password +
                                               ";database=" + Database + ";";
 
@@ -23,27 +21,32 @@ namespace ClashRoyale.Server.Database
             get
             {
                 var Query = "SELECT * FROM Replays";
-
                 var List = new List<ReplayManager>();
 
-                if (MySQLConn.State == ConnectionState.Open)
+                using (var Conn = new MySqlConnection(Credentials))
                 {
-                    var CMD = new MySqlCommand(Query, MySQLConn);
+                    try
+                    {
+                        Conn.Open();
 
-                    var Reader = CMD.ExecuteReader();
-
-                    while (Reader.Read())
-                        List.Add(new ReplayManager
+                        using (var CMD = new MySqlCommand(Query, Conn))
+                        using (var Reader = CMD.ExecuteReader())
                         {
-                            ReplayID = long.Parse(Reader["ReplayID"].ToString()),
-                            ViewCount = int.Parse(Reader["ViewCount"].ToString()),
-                            Arena = int.Parse(Reader["Arena"].ToString()),
-                            JSON = Reader["Data"].ToString()
-                        });
-
-                    Reader.Close();
-
-                    return List;
+                            while (Reader.Read())
+                                List.Add(new ReplayManager
+                                {
+                                    ReplayID = long.Parse(Reader["ReplayID"].ToString()),
+                                    ViewCount = int.Parse(Reader["ViewCount"].ToString()),
+                                    Arena = int.Parse(Reader["Arena"].ToString()),
+                                    JSON = Reader["Data"].ToString()
+                                });
+                        }
+                    }
+                    catch (Exception Ex)
+                    {
+                        Console.WriteLine("There was an exception while handling the table Replays");
+                        Console.WriteLine(Ex);
+                    }
                 }
 
                 return List;
@@ -55,23 +58,23 @@ namespace ClashRoyale.Server.Database
             var SQL = "SELECT coalesce(MAX(" + Key + "), 0) FROM " + TableName;
             var Seed = -1;
 
-            MySQLConn = new MySqlConnection(Credentials);
-
-            try
+            using (var Conn = new MySqlConnection(Credentials))
             {
-                MySQLConn.Open();
-
-                using (var CMD = new MySqlCommand(SQL, MySQLConn))
+                try
                 {
-                    CMD.Prepare();
-                    Seed = Convert.ToInt32(CMD.ExecuteScalar());
-                }
-            }
-            catch (Exception Ex)
-            {
-                Console.WriteLine("There was an excpetion while handling the table " + TableName);
+                    Conn.Open();
 
-                Console.WriteLine(Ex);
+                    using (var CMD = new MySqlCommand(SQL, Conn))
+                    {
+                        CMD.Prepare();
+                        Seed = Convert.ToInt32(CMD.ExecuteScalar());
+                    }
+                }
+                catch (Exception Ex)
+                {
+                    Console.WriteLine("There was an exception while handling the table " + TableName);
+                    Console.WriteLine(Ex);
+                }
             }
 
             return Seed;
@@ -81,13 +84,23 @@ namespace ClashRoyale.Server.Database
         {
             var Query = "SELECT count(*) FROM " + Table;
 
-            if (MySQLConn.State == ConnectionState.Open)
+            using (var Conn = new MySqlConnection(Credentials))
             {
-                var CMD = new MySqlCommand(Query, MySQLConn);
+                try
+                {
+                    Conn.Open();
 
-                CMD.Prepare();
-
-                return Convert.ToInt32(CMD.ExecuteScalar());
+                    using (var CMD = new MySqlCommand(Query, Conn))
+                    {
+                        CMD.Prepare();
+                        return Convert.ToInt32(CMD.ExecuteScalar());
+                    }
+                }
+                catch (Exception Ex)
+                {
+                    Console.WriteLine("There was an exception while handling the table " + Table);
+                    Console.WriteLine(Ex);
+                }
             }
 
             return 0;
