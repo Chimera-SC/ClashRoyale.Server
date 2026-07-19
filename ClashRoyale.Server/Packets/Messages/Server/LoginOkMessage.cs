@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ClashRoyale.Server.Core;
 using ClashRoyale.Server.Logic;
 using ClashRoyale.Server.Managers;
@@ -24,9 +24,9 @@ namespace ClashRoyale.Server.Packets.Messages.Server
             Data.AddString(null); // Gamecenter ID
 
             Data.AddVInt(3); // Server Major
-            Data.AddVInt(193); // Server Minor
-            Data.AddVInt(193); // Server Minor
-            Data.AddVInt(8); // Server Build
+            Data.AddVInt(830); // Server Minor
+            Data.AddVInt(830); // Server Minor
+            Data.AddVInt(0); // Server Build
 
             Data.AddString("prod");
 
@@ -50,13 +50,15 @@ namespace ClashRoyale.Server.Packets.Messages.Server
             Data.AddString(Device.Player.City);
             Data.AddString(Device.Player.Region);
 
-            Data.AddByte(0);
-
+            Data.AddVInt(1);
+            Data.AddVInt(455500);
+            Data.AddVInt(115500);
+            
+            Data.AddVInt(2);
+            Data.AddString("");
             Data.AddString("https://game-assets.clashroyaleapp.com");
-
-            Data.AddString("https://99faf1e355c749a9a049-2a63f4436c967aa7d355061bd0d924a1.ssl.cf1.rackcdn.com");
-
-            Data.AddString("https://event-assets.clashroyale.com");
+            Data.AddVInt(1);
+            Data.AddString("");
         }
 
         internal override void Process()
